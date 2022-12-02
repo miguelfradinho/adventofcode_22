@@ -15,6 +15,15 @@ def day_1(name):
         return elfs_totals[0], sum(elfs_totals[:3])
 
 def main():
-    print(day_1("day_1_main"))
+    fun_prefix = "day_"
+    fun_names = [f"{fun_prefix}{i}" for i in range(1, 26)]
+    STOP = 2
+    STOP_AT = f"{fun_prefix}{STOP}" 
 
+    clean_globals = {k:v for k,v in globals().items() if k.startswith(fun_prefix)}
+    for i in fun_names:
+        if i == STOP_AT:
+            break
+        fun = clean_globals[i]
+        print(f"{i} - {fun(i)}")
 main()
