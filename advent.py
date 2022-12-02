@@ -10,7 +10,9 @@ def day_1(name):
         # split the groups and sum the numbs
         elfs_totals = [sum(int(j) for j in i.split(",")) for i in raw_numbers.split(";")]
         
-        return max(elfs_totals)
+        elfs_totals.sort(reverse=True)
+
+        return elfs_totals[0], sum(elfs_totals[:3])
 
 def main():
     print(day_1("day_1_main"))
