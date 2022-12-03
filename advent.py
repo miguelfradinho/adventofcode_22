@@ -2,6 +2,24 @@ import enum
 def get_file(exercise, ext="txt"):
     return open(f"input_{exercise}.{ext}", "r", encoding="utf-8")
 
+def day_3(name):
+    def get_priority(char):
+        if "a" <= char <= "z":
+            return ord(char)-96
+        elif "A" <= char <= "Z":
+            return ord(char)-38
+        else:
+            raise ValueError("Wrong char")
+    total_items = []
+    with get_file(name) as f:
+        for line in f:
+            line = line.strip()
+            n_times = len(line)//2
+            first_half, second_half = set(line[:n_times]), set(line[n_times:])
+            common = first_half.intersection(second_half)            
+            total_items.extend(common)
+
+        return sum([get_priority(i) for i in total_items])
 
 def day_2(name):
     class Move_them(enum.StrEnum):
@@ -137,7 +155,7 @@ def main():
     fun_prefix = "day_"
     fun_names = [f"{fun_prefix}{i}" for i in range(1, 26)]
     STOP = 3
-    STOP_AT = f"{fun_prefix}{STOP}" 
+    STOP_AT = f"{fun_prefix}{STOP+1}" 
 
     clean_globals = {k:v for k,v in globals().items() if k.startswith(fun_prefix)}
     for i in fun_names:
