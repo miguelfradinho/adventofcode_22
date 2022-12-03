@@ -12,20 +12,40 @@ def day_2(name):
         ROCK = "X"
         PAPER = "Y"
         SCISSORS = "Z"
-
+    class Move_Result(enum.StrEnum):
+        # Points for the outcome
+        LOSS = "X"
+        DRAW = "Y"
+        WIN = "Z"
+    
     class Shape(enum.IntEnum):
         # Points for the shape
         ROCK = 1 
         PAPER = 2
         SCISSORS = 3
+
+        def __invert__(self) -> int:
+            if self is Shape.ROCK:
+                return Shape.PAPER
+            if self is Shape.PAPER:
+                return Shape.SCISSORS
+            if self is Shape.SCISSORS:
+                return Shape.ROCK
+        def __xor__(self, __n: int) -> int:
+            if self is Shape.ROCK:
+                return Shape.SCISSORS
+            if self is Shape.PAPER:
+                return Shape.ROCK
+            if self is Shape.SCISSORS:
+                return Shape.PAPER
+    
     class Outcome(enum.IntEnum):
         # Points for the outcome
         LOSS = 0
         DRAW = 3
         WIN = 6 
     
-    def get_move(move, move_map : Move_them | Move_me) -> Shape:
-        
+    def get_move(move, move_map : Move_them | Move_me) -> Shape:       
         match move:
             case move_map.ROCK:
                 return Shape.ROCK
@@ -36,8 +56,19 @@ def day_2(name):
             case _:
                 raise ValueError("Invalid argument", move, move_map)
 
+    
+    def get_result(move, move_map : Move_Result) -> Shape:       
+        match move:
+            case move_map.LOSS:
+                return Outcome.LOSS
+            case move_map.DRAW:
+                return Outcome.DRAW
+            case move_map.WIN:
+                return Outcome.WIN
+            case _:
+                raise ValueError("Invalid argument", move, move_map)
+
     def get_outcome_as_win(them : Shape, me : Shape) -> Outcome:
-        
         if them == me:
             return Outcome.DRAW
         if them is Shape.ROCK:
@@ -55,17 +86,41 @@ def day_2(name):
                 return Outcome.WIN
             return Outcome.LOSS
 
-    def get_score(them, me) -> int:
 
-        theirs, mine = get_move(them, Move_them),get_move(me,Move_me)
+    def get_outcome_as_result(them : Shape, result : Outcome) -> Shape: 
+        if result is Outcome.DRAW:
+            return them 
+
+        elif result is Outcome.WIN:
+            return ~them
         
-        return mine + get_outcome_as_win(theirs, mine)
+        elif result is Outcome.LOSS:
+            return them^0 
+
+        else:
+            raise ValueError(them, result)
 
 
-    results = [] 
+    results_as_win = []
+    results_as_outcome = [] 
     with get_file(name) as f:
-        results = [get_score(*line.strip().split(" ")) for line in f]
-        return sum(results)
+        for line in f:
+            clean_line = line.strip()
+            col1, col2 = clean_line.split(" ")
+            
+            theirs = get_move(col1, Move_them)
+            
+            # Moves as col2 = Move to win
+            mine = get_move(col2, Move_me)
+            results_as_win.append(mine + get_outcome_as_win(theirs,mine))
+            
+            # Moves as col2 = end result 
+            res = get_result(col2, Move_Result)
+            results_as_outcome.append(res + get_outcome_as_result(theirs,res))
+        
+        assert len(results_as_win) == len(results_as_outcome)
+
+        return sum(results_as_win), sum(results_as_outcome)
 
 def day_1(name):
     with get_file(name) as f:
