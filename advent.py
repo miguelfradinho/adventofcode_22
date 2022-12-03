@@ -10,16 +10,26 @@ def day_3(name):
             return ord(char)-38
         else:
             raise ValueError("Wrong char")
-    total_items = []
-    with get_file(name) as f:
-        for line in f:
-            line = line.strip()
-            n_times = len(line)//2
-            first_half, second_half = set(line[:n_times]), set(line[n_times:])
-            common = first_half.intersection(second_half)            
-            total_items.extend(common)
 
-        return sum([get_priority(i) for i in total_items])
+    rucksacks = [line.strip() for line in get_file(name)]
+    
+    item_types = []
+    badges = []
+    
+    for bag in rucksacks:
+        n_times = len(bag)//2
+        first_half, second_half = set(bag[:n_times]), set(bag[n_times:])
+        common = first_half.intersection(second_half)            
+        item_types.extend(common)
+
+    group_size = 3
+
+    for i in range(0, len(rucksacks), group_size):
+        group_bags = [set(r) for r in rucksacks[i:i+group_size]]
+        badge_letter = group_bags[0].intersection(*group_bags[1:])
+        badges.extend(badge_letter)
+
+    return sum([get_priority(i) for i in item_types]), sum([get_priority(i) for i in badges]), 
 
 def day_2(name):
     class Move_them(enum.StrEnum):
