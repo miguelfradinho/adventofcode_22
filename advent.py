@@ -6,7 +6,7 @@ if __name__ == "__main__":
     fun_prefix = "day_"
     fun_names = [f for f in dir(sol_snake) if f.startswith(fun_prefix)]
     STOP = 3
-    STOP_AT = f"{fun_prefix}{STOP+1}" 
+    STOP_AT = f"{fun_prefix}{STOP+1}"
 
     for i in fun_names:
         if i == STOP_AT:
