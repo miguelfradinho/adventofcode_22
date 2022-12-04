@@ -17,12 +17,16 @@ def day_4(file_obj):
     assignments = [pair_into_range_set(i) for i in all_pairs]
 
     count = 0
+
+    subsets = []
+    overlap = []
     for a in assignments:
         a : Tuple[set, set]
         f, s = a
 
+        if f.intersection(s) != set() or s.intersection(f) != set():
+            overlap.append((f,s))
         if s.issubset(f) or f.issubset(s):
-            count +=1
+            subsets.append((f,s))
 
-
-    return count, len (assignments)
+    return  len(subsets), len(overlap)
