@@ -27,7 +27,7 @@ class Move:
 def create_stacks(lines: list[str]):
 
     # last line always has the columns numbered
-    stacks_numbers = lines[-1].split(" "*2)
+    stacks_numbers = lines[-1].split(" " * 2)
     total_stacks = int(stacks_numbers[-1])
     stacks = [deque() for _ in range(total_stacks)]
 
