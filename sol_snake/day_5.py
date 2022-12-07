@@ -56,7 +56,7 @@ def day_5(file_obj):
 
     with file_obj as f:
         for line in f:
-            line = line.strip()
+            line = line.strip("\n")
             # when we reach the blank line, switch which we're appending to
             if line == "":
                 current_append = moves_data
