@@ -12,6 +12,23 @@ class SpecialDir(StrEnum):
 class CommandType(StrEnum):
     ListFiles = "ls"
     ChangeDir = "cd"
+
+@dataclass
+class Command:
+    cmd_type: CommandType
+
+
+class ListFiles(Command):
+    result : list
+    def __init__(self):
+        super().__init__(CommandType.ListFiles)
+        self.result = list()
+
+class ChangeDir (Command):
+    cmd_arg: Optional[str | SpecialDir]
+    def __init__(self, cmd_arg = None):
+        super().__init__(CommandType.ChangeDir)
+        self.cmd_arg = cmd_arg
 @dataclass
 class BaseEntity:
     name: str
@@ -63,5 +80,50 @@ class Dir(BaseEntity):
         self._child_changed = False
         self._total_size = curr_size
         return curr_size
+
+def parse_commands(file_obj):
+
+    # first command seems to always be the root, so, create that
+    CHANGE_ROOT = ChangeDir(SpecialDir.ROOT)
+    file_obj.readline() # and ignore it
+
+    commands = deque()
+    commands.append(CHANGE_ROOT)
+
+    curr_command = None
+    for line in file_obj:
+        # sanitize the line for line-feeds
+        line = line.rstrip()
+        # it's a command, so
+        if line.startswith("$"):
+            match line.lstrip("$ ").split(" "):
+                case [CommandType.ListFiles]:
+                    curr_command = ListFiles()
+                case [CommandType.ChangeDir, SpecialDir.ROOT]:
+                    curr_command = CHANGE_ROOT
+                case [CommandType.ChangeDir, SpecialDir.PARENT]:
+                    curr_command = ChangeDir(SpecialDir.PARENT)
+                case [CommandType.ChangeDir, arg]:
+                    curr_command = ChangeDir(arg)
+                case _:
+                    raise ValueError("Error in parsing")
+            # after we got our command, just append that to the command list
+
+            commands.append(curr_command)
+            continue
+
+        # it's not a command, so we're probably on an LS feed. Which means, we can just keep appending to the result
+        else:
+            curr_command.result.append(line)
+
+    return commands
+
+
 def day_7(file_obj):
-    return None
+    # just for helper
+    ROOT_DIR = Dir(SpecialDir.ROOT)
+    with open("sol_snake\example_7.txt") as f:
+        commands = parse_commands(f)
+        print(commands)
+
+        return ROOT_DIR.get_size
