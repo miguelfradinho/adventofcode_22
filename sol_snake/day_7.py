@@ -159,11 +159,19 @@ def day_7(file_obj: IO):
     #example = open("sol_snake\example_7.txt")
     # read the lines while also removing line breaks
     tree, all_dirs = create_tree(file_obj)
-    MAX_SIZE = 100000
-    valid_dirs = []
+    MAX_SIZE = 100_000
+    TOTAL_SPACE = 70_000_000
+    NEEDED_SPACE = 30_000_000
+    UNUSED_SPACE = TOTAL_SPACE - tree.get_size
+    THRESHOLD = NEEDED_SPACE-UNUSED_SPACE
+
+    max_size_dirs = []
+    possible_to_delete = []
     for d in all_dirs:
         dir_size = d.get_size
         if dir_size <= MAX_SIZE:
-            valid_dirs.append(d)
+            max_size_dirs.append(d)
+        if dir_size >= THRESHOLD:
+            possible_to_delete.append(d)
 
-    return sum([i.get_size for i in valid_dirs])
+    return sum([i.get_size for i in max_size_dirs]),min([i.get_size for i in possible_to_delete])
