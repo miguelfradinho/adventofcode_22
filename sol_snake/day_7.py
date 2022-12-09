@@ -2,31 +2,33 @@ from dataclasses import dataclass
 from typing import Optional, IO
 from collections import deque
 
+
 @dataclass
 class File:
-    name : str
-    size : int
+    name: str
+    size: int
 
 
 class Dir:
-    def __init__(self, name: str, parent : "Dir" = None):
+    def __init__(self, name: str, parent: "Dir" = None):
         # name of this node
         self._name: str = name
         if parent is not None:
-            self._parent : Dir = parent
+            self._parent: Dir = parent
         # right nodes
         self._files: list[File] = list()
         # left nodes
         self._dirs: list[Dir] = list()
 
         # cache for total size
-        self._total_size : Optional[int] = None
+        self._total_size: Optional[int] = None
         # helper for caching the size
-        self._child_changed : bool = True
+        self._child_changed: bool = True
 
     @property
     def name(self):
         return self._name
+
     @property
     def files(self):
         return self._files
@@ -74,6 +76,7 @@ class Dir:
     def __repr__(self):
         return f"({self.name}, dirs={str(self._dirs)}, files={str(self._files)})"
 
+
 def create_tree(file_obj):
     # create the root node
     ROOT_NODE = Dir("/")
@@ -117,7 +120,9 @@ def create_tree(file_obj):
                     case dir_name:
                         sub_dir = curr_node.find_child(dir_name)
                         if sub_dir is None:
-                            raise ValueError(f"Error parsing, directory {dir_name} was not created")
+                            raise ValueError(
+                                f"Error parsing, directory {dir_name} was not created"
+                            )
                         curr_node = sub_dir
                         continue
             # listing
@@ -155,15 +160,16 @@ def create_tree(file_obj):
 
     return ROOT_NODE, all_dirs
 
+
 def day_7(file_obj: IO):
-    #example = open("sol_snake\example_7.txt")
+    # example = open("sol_snake\example_7.txt")
     # read the lines while also removing line breaks
     tree, all_dirs = create_tree(file_obj)
     MAX_SIZE = 100_000
     TOTAL_SPACE = 70_000_000
     NEEDED_SPACE = 30_000_000
     UNUSED_SPACE = TOTAL_SPACE - tree.get_size
-    THRESHOLD = NEEDED_SPACE-UNUSED_SPACE
+    THRESHOLD = NEEDED_SPACE - UNUSED_SPACE
 
     max_size_dirs = []
     possible_to_delete = []
@@ -174,4 +180,6 @@ def day_7(file_obj: IO):
         if dir_size >= THRESHOLD:
             possible_to_delete.append(d)
 
-    return sum([i.get_size for i in max_size_dirs]),min([i.get_size for i in possible_to_delete])
+    return sum([i.get_size for i in max_size_dirs]), min(
+        [i.get_size for i in possible_to_delete]
+    )
