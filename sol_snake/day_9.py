@@ -136,7 +136,8 @@ def move_tail(
     else:
         # if not, we need to move the tail accordingly
         # so first, check the relative position of the previous head position
-        _, was_touching_dir = tail_is_touching(curr_tail, curr_head)
+        is_touch, was_touching_dir = tail_is_touching(curr_tail, curr_head)
+
         # We already know we're not touching, so we're 2 steps away
         # If we were diagonally, that means we moved further, so we also need to move also diagonally
         if was_touching_dir.is_diagonal():
@@ -148,9 +149,9 @@ def move_tail(
 
 
 def day_9(file_obj):
-    example = open("sol_snake\example_9.txt", encoding="utf-8")
+    example = open("sol_snake\example_9_2.txt", encoding="utf-8")
+    all_moves: list[Move] = parse_moves(example)
     visited_coords = {}
-    all_moves: list[Move] = parse_moves(file_obj)
 
     # Initial conditions
     START_POS = (0, 0)
@@ -159,6 +160,8 @@ def day_9(file_obj):
     main_pos_tail = START_POS
     visited_coords[START_POS] = 1
 
+
+
     for move in all_moves:
         # logic for main solution
         for i in range(move.distance):
@@ -166,7 +169,9 @@ def day_9(file_obj):
             next_head = get_move(main_pos_head, move.direction)
 
             # Tail Logic
-            next_tail = move_tail(main_pos_tail, main_pos_head, next_head, move.direction)
+            next_tail = move_tail(
+                main_pos_tail, main_pos_head, next_head, move.direction
+            )
             # they should be touching
             assert tail_is_touching(next_tail, next_head)
 
@@ -176,9 +181,39 @@ def day_9(file_obj):
             # register the visit
             visited_coords[main_pos_tail] = visited_coords.get(main_pos_tail, 0) + 1
 
-
     # Logic for 2nd solution
-    TOTAL_SEGMENTS = 10
-    
+    N_TAIL_SEGMENTS = 9
+    big_rope_visited_coords = {}
+    big_rope_visited_coords[START_POS] = 1
+    rope_positions = [START_POS for _ in range(N_TAIL_SEGMENTS)]
+    bonus_pos_head = START_POS
 
-    return len(visited_coords.keys())
+    for move in all_moves:
+        # logic for bonus solution
+        for dist in range(move.distance):
+            # Move Head
+            next_head = get_move(bonus_pos_head, move.direction)
+
+            # Tail Logic
+            # Each rope segment acts as the head to the next one, so
+            # state variable for moving the tails
+            prev_segment_initial = bonus_pos_head
+            prev_segment_final = next_head
+            for i in range(N_TAIL_SEGMENTS):
+                curr_tail = rope_positions[i]
+                next_tail = move_tail(curr_tail, prev_segment_initial, prev_segment_final, move.direction)
+                # update the segment
+                prev_segment_initial = curr_tail
+                prev_segment_final = next_tail
+                rope_positions[i] = next_tail
+
+
+            # Update logic
+            bonus_pos_head = next_head
+
+            # register the visit (only for the True tail)
+            big_rope_visited_coords[rope_positions[-1]] = (
+                big_rope_visited_coords.get(rope_positions[-1], 0) + 1
+            )
+
+    return len(visited_coords.keys()), len(big_rope_visited_coords.keys())
