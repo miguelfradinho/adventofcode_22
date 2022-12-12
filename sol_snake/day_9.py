@@ -129,8 +129,11 @@ def get_relative_direction(tail: Coordinate, head: Coordinate) -> Optional[Direc
                 else Direction.DiagonalLeftDown
             )
 
-def solve_rope_motion( moves : list[Move], start_pos : Coordinate = (0,0), tail_segments: int = 1) -> dict[Coordinate, int]:
-    visited:  dict[Coordinate, int] = {}
+
+def solve_rope_motion(
+    moves: list[Move], start_pos: Coordinate = (0, 0), tail_segments: int = 1
+) -> dict[Coordinate, int]:
+    visited: dict[Coordinate, int] = {}
     # initial conditions
     curr_head = start_pos
     segments = [start_pos for _ in range(tail_segments)]
@@ -159,8 +162,9 @@ def solve_rope_motion( moves : list[Move], start_pos : Coordinate = (0,0), tail_
             visited[segments[-1]] = visited.get(segments[-1], 0) + 1
     return visited
 
+
 def day_9(file_obj):
-    example = open("sol_snake\example_9.txt", encoding="utf-8")
+    example = open("sol_snake\\example_9.txt", encoding="utf-8")
 
     all_moves: list[Move] = parse_moves(file_obj)
     main_visited = solve_rope_motion(all_moves)
