@@ -154,26 +154,31 @@ def day_9(file_obj):
 
     # Initial conditions
     START_POS = (0, 0)
-    pos_head = START_POS
-    pos_tail = pos_head
-    visited_coords[pos_tail] = 1
+
+    main_pos_head = START_POS
+    main_pos_tail = START_POS
+    visited_coords[START_POS] = 1
 
     for move in all_moves:
         # logic for main solution
         for i in range(move.distance):
             # Move Head
-            next_head = get_move(pos_head, move.direction)
+            next_head = get_move(main_pos_head, move.direction)
 
             # Tail Logic
-            next_tail = move_tail(pos_tail, pos_head, next_head, move.direction)
+            next_tail = move_tail(main_pos_tail, main_pos_head, next_head, move.direction)
             # they should be touching
             assert tail_is_touching(next_tail, next_head)
 
             # Update logic
-            pos_head = next_head
-            pos_tail = next_tail
+            main_pos_head = next_head
+            main_pos_tail = next_tail
             # register the visit
-            visited_coords[pos_tail] = visited_coords.get(pos_tail, 0) + 1
-            #print("head", pos_head, "tail:", pos_tail)
+            visited_coords[main_pos_tail] = visited_coords.get(main_pos_tail, 0) + 1
+
+
+    # Logic for 2nd solution
+    TOTAL_SEGMENTS = 10
+    
 
     return len(visited_coords.keys())
