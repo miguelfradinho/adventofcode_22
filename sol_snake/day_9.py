@@ -1,6 +1,6 @@
-import typing
 from enum import Enum
 from dataclasses import dataclass
+from typing import Optional
 
 
 class Direction(Enum):
@@ -12,30 +12,6 @@ class Direction(Enum):
     DiagonalLeftDown = 7
     Left = 4
     DiagonalLeftUp = 8
-
-    def is_diagonal(self):
-        match self:
-            case Direction.DiagonalRightUp:
-                return True
-            case Direction.DiagonalRightDown:
-                return True
-            case Direction.DiagonalLeftDown:
-                return True
-            case Direction.DiagonalLeftUp:
-                return True
-        return False
-
-    def is_cardinal(self):
-        match self:
-            case Direction.Up:
-                return True
-            case Direction.Right:
-                return True
-            case Direction.Down:
-                return True
-            case Direction.Left:
-                return True
-        return False
 
     @staticmethod
     def from_string(string):
@@ -75,19 +51,18 @@ def parse_moves(file_obj) -> list[Move]:
 
 
 # We only need to check, regardless of the direction
-def tail_is_touching(
-    tail: Coordinate, head: Coordinate
-) -> tuple[bool, typing.Optional[Direction]]:
+def tail_is_touching(tail: Coordinate, head: Coordinate) -> bool:
     # Overlapping
     if tail == head:
-        return True, None
+        return True
 
+    # Use man
     # check in all directions
     for d in Direction:
         if get_move(tail, d) == head:
-            return True, d
+            return True
 
-    return False, None
+    return False
 
 
 def get_move(coord: Coordinate, direction: Direction) -> Coordinate:
@@ -122,29 +97,37 @@ def get_move(coord: Coordinate, direction: Direction) -> Coordinate:
             raise ValueError("Wrong parsing", other)
 
 
-def move_tail(
-    curr_tail: Coordinate,
-    curr_head: Coordinate,
-    next_head: Coordinate,
-    direction: Direction,
-) -> Coordinate:
-    # check if we're still touching the head with the tail
-    is_touching, _ = tail_is_touching(curr_tail, next_head)
-    if is_touching:
-        # if we are, we can stay in the same position
-        return curr_tail
+def get_relative_direction(tail: Coordinate, head: Coordinate) -> Optional[Direction]:
+    # Check if they're touching, if they're, don't move
+    if tail_is_touching(tail, head):
+        return None
+
+    tail_x, tail_y = tail
+    head_x, head_y = head
+    # we're on same Horizontal axis, so it's either up or down
+    if tail_x == head_x:
+        return Direction.Up if tail_y < head_y else Direction.Down
+    # we're on same Vertical axis, so either right or left
+    elif tail_y == head_y:
+        return Direction.Right if tail_x < head_x else Direction.Left
+    # not on either axis, so we have to go diagonally
     else:
-        # if not, we need to move the tail accordingly
-        # so first, check the relative position of the previous head position
-        _, was_touching_dir = tail_is_touching(curr_tail, curr_head)
-        # We already know we're not touching, so we're 2 steps away
-        # If we were diagonally, that means we moved further, so we also need to move also diagonally
-        if was_touching_dir.is_diagonal():
-            return get_move(curr_tail, was_touching_dir)
-        # otherwise, we can just move in the same direction
+        # we're behind, so it's either RightUp or RightDown
+        if tail_x < head_x:
+            # if we're below it, RightUp, otherwise we're above it, so
+            return (
+                Direction.DiagonalRightUp
+                if tail_y < head_y
+                else Direction.DiagonalRightDown
+            )
+        # we're ahead, so it's either LeftUp or LeftDown
         else:
-            # move tail same way
-            return get_move(curr_tail, direction)
+            # if we're below it, LeftUp, otherwise we're above it, so
+            return (
+                Direction.DiagonalLeftUp
+                if tail_y < head_y
+                else Direction.DiagonalLeftDown
+            )
 
 
 def day_9(file_obj):
@@ -155,30 +138,28 @@ def day_9(file_obj):
     # Initial conditions
     START_POS = (0, 0)
 
-    main_pos_head = START_POS
-    main_pos_tail = START_POS
+    curr_head = START_POS
+    curr_tail = START_POS
     visited_coords[START_POS] = 1
 
     for move in all_moves:
         # logic for main solution
         for i in range(move.distance):
             # Move Head
-            next_head = get_move(main_pos_head, move.direction)
+            next_head = get_move(curr_head, move.direction)
 
             # Tail Logic
-            next_tail = move_tail(main_pos_tail, main_pos_head, next_head, move.direction)
-            # they should be touching
-            assert tail_is_touching(next_tail, next_head)
+            direction_to_move = get_relative_direction(curr_tail, next_head)
+            # only move if we're not touching or overlapping
+            if direction_to_move is not None:
+                next_tail = get_move(curr_tail, direction_to_move)
+            else:
+                next_tail = curr_tail
 
             # Update logic
-            main_pos_head = next_head
-            main_pos_tail = next_tail
+            curr_head = next_head
+            curr_tail = next_tail
             # register the visit
-            visited_coords[main_pos_tail] = visited_coords.get(main_pos_tail, 0) + 1
-
-
-    # Logic for 2nd solution
-    TOTAL_SEGMENTS = 10
-    
+            visited_coords[curr_tail] = visited_coords.get(curr_tail, 0) + 1
 
     return len(visited_coords.keys())
