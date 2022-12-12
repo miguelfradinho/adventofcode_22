@@ -122,6 +122,31 @@ def get_move(coord: Coordinate, direction: Direction) -> Coordinate:
             raise ValueError("Wrong parsing", other)
 
 
+def move_tail(
+    curr_tail: Coordinate,
+    curr_head: Coordinate,
+    next_head: Coordinate,
+    direction: Direction,
+) -> Coordinate:
+    # check if we're still touching the head with the tail
+    is_touching, _ = tail_is_touching(curr_tail, next_head)
+    if is_touching:
+        # if we are, we can stay in the same position
+        return curr_tail
+    else:
+        # if not, we need to move the tail accordingly
+        # so first, check the relative position of the previous head position
+        _, was_touching_dir = tail_is_touching(curr_tail, curr_head)
+        # We already know we're not touching, so we're 2 steps away
+        # If we were diagonally, that means we moved further, so we also need to move also diagonally
+        if was_touching_dir.is_diagonal():
+            return get_move(curr_tail, was_touching_dir)
+        # otherwise, we can just move in the same direction
+        else:
+            # move tail same way
+            return get_move(curr_tail, direction)
+
+
 def day_9(file_obj):
     example = open("sol_snake\example_9.txt", encoding="utf-8")
     visited_coords = {}
@@ -134,34 +159,21 @@ def day_9(file_obj):
     visited_coords[pos_tail] = 1
 
     for move in all_moves:
+        # logic for main solution
         for i in range(move.distance):
-            # get the next position
+            # Move Head
             next_head = get_move(pos_head, move.direction)
-            # check if we're still touching the head with the tail
-            is_touching, _ = tail_is_touching(pos_tail, next_head)
-            if is_touching:
-                # if we are, we can stay in the same position
-                next_tail = pos_tail
-            else:
-                # if not, we need to move the tail accordingly
-                # so first, check the relative position of the previous head position
-                _, was_touching_dir = tail_is_touching(pos_tail, pos_head)
-                # We already know we're not touching, so we're 2 steps away
-                # If we were diagonally, that means we moved further, so we also need to move also diagonally
-                if was_touching_dir.is_diagonal():
-                    next_tail = get_move(pos_tail, was_touching_dir)
-                # otherwise, we can just move in the same direction
-                else:
-                    # move tail same way
-                    next_tail = get_move(pos_tail, move.direction)
 
-                # they should be touching
-                assert tail_is_touching(next_tail, next_head)
-            # update the position of both
+            # Tail Logic
+            next_tail = move_tail(pos_tail, pos_head, next_head, move.direction)
+            # they should be touching
+            assert tail_is_touching(next_tail, next_head)
+
+            # Update logic
             pos_head = next_head
             pos_tail = next_tail
             # register the visit
             visited_coords[pos_tail] = visited_coords.get(pos_tail, 0) + 1
-            print("head", pos_head, "tail:", pos_tail)
+            #print("head", pos_head, "tail:", pos_tail)
 
     return len(visited_coords.keys())
