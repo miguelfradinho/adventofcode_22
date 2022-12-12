@@ -168,7 +168,7 @@ def day_9(file_obj):
             visited_coords[curr_tail] = visited_coords.get(curr_tail, 0) + 1
 
     for move in all_moves:
-        for i in range(move.distance):
+        for _ in range(move.distance):
             # Move Head
             bonus_next_head = get_move(bonus_curr_head, move.direction)
 
