@@ -133,6 +133,7 @@ def get_relative_direction(tail: Coordinate, head: Coordinate) -> Optional[Direc
 def day_9(file_obj):
     example = open("sol_snake\example_9.txt", encoding="utf-8")
     visited_coords = {}
+    bonus_visited = {}
     all_moves: list[Move] = parse_moves(file_obj)
 
     # Initial conditions
@@ -142,8 +143,12 @@ def day_9(file_obj):
     curr_tail = START_POS
     visited_coords[START_POS] = 1
 
+    TOTAL_SEGMENTS = 9
+    bonus_curr_head = START_POS
+    segments = [START_POS for _ in range(TOTAL_SEGMENTS)]
+
+    # logic for main solution
     for move in all_moves:
-        # logic for main solution
         for i in range(move.distance):
             # Move Head
             next_head = get_move(curr_head, move.direction)
@@ -162,4 +167,31 @@ def day_9(file_obj):
             # register the visit
             visited_coords[curr_tail] = visited_coords.get(curr_tail, 0) + 1
 
-    return len(visited_coords.keys())
+    for move in all_moves:
+        for i in range(move.distance):
+            # Move Head
+            bonus_next_head = get_move(bonus_curr_head, move.direction)
+
+            # Tail Logic
+            previous_seg = bonus_next_head
+            # Move each segment
+            for i in range(TOTAL_SEGMENTS):
+                curr_tail = segments[i]
+
+                bonus_direction_to_move = get_relative_direction(curr_tail, previous_seg)
+                # only move if we're not touching or overlapping
+                if bonus_direction_to_move is not None:
+                    bonus_next_tail = get_move(curr_tail, bonus_direction_to_move)
+                else:
+                    bonus_next_tail = curr_tail
+                # update the segment
+                segments[i] = bonus_next_tail
+                previous_seg = bonus_next_tail
+
+            # Update logic
+            bonus_curr_head = bonus_next_head
+
+            # register the visit of only the last one
+            bonus_visited[segments[-1]] = bonus_visited.get(segments[-1], 0) + 1
+
+    return len(visited_coords.keys()), len(bonus_visited.keys())
