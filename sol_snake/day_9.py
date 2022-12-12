@@ -129,69 +129,41 @@ def get_relative_direction(tail: Coordinate, head: Coordinate) -> Optional[Direc
                 else Direction.DiagonalLeftDown
             )
 
-
-def day_9(file_obj):
-    example = open("sol_snake\example_9.txt", encoding="utf-8")
-    visited_coords = {}
-    bonus_visited = {}
-    all_moves: list[Move] = parse_moves(file_obj)
-
-    # Initial conditions
-    START_POS = (0, 0)
-
-    curr_head = START_POS
-    curr_tail = START_POS
-    visited_coords[START_POS] = 1
-
-    TOTAL_SEGMENTS = 9
-    bonus_curr_head = START_POS
-    segments = [START_POS for _ in range(TOTAL_SEGMENTS)]
-
-    # logic for main solution
-    for move in all_moves:
-        for i in range(move.distance):
+def solve_rope_motion( moves : list[Move], start_pos : Coordinate = (0,0), tail_segments: int = 1) -> dict[Coordinate, int]:
+    visited:  dict[Coordinate, int] = {}
+    # initial conditions
+    curr_head = start_pos
+    segments = [start_pos for _ in range(tail_segments)]
+    for move in moves:
+        for _ in range(move.distance):
             # Move Head
             next_head = get_move(curr_head, move.direction)
-
             # Tail Logic
-            direction_to_move = get_relative_direction(curr_tail, next_head)
-            # only move if we're not touching or overlapping
-            if direction_to_move is not None:
-                next_tail = get_move(curr_tail, direction_to_move)
-            else:
-                next_tail = curr_tail
+            head_to_follow = next_head
+            # Move each segment
+            for i in range(tail_segments):
+                curr_tail = segments[i]
+                dir_to_move = get_relative_direction(curr_tail, head_to_follow)
+                # only move if we're not touching or overlapping
+                if dir_to_move is not None:
+                    next_tail = get_move(curr_tail, dir_to_move)
+                else:
+                    next_tail = curr_tail
+                # update the segment position
+                segments[i] = next_tail
+                head_to_follow = next_tail
 
             # Update logic
             curr_head = next_head
-            curr_tail = next_tail
-            # register the visit
-            visited_coords[curr_tail] = visited_coords.get(curr_tail, 0) + 1
-
-    for move in all_moves:
-        for _ in range(move.distance):
-            # Move Head
-            bonus_next_head = get_move(bonus_curr_head, move.direction)
-
-            # Tail Logic
-            previous_seg = bonus_next_head
-            # Move each segment
-            for i in range(TOTAL_SEGMENTS):
-                curr_tail = segments[i]
-
-                bonus_direction_to_move = get_relative_direction(curr_tail, previous_seg)
-                # only move if we're not touching or overlapping
-                if bonus_direction_to_move is not None:
-                    bonus_next_tail = get_move(curr_tail, bonus_direction_to_move)
-                else:
-                    bonus_next_tail = curr_tail
-                # update the segment
-                segments[i] = bonus_next_tail
-                previous_seg = bonus_next_tail
-
-            # Update logic
-            bonus_curr_head = bonus_next_head
-
             # register the visit of only the last one
-            bonus_visited[segments[-1]] = bonus_visited.get(segments[-1], 0) + 1
+            visited[segments[-1]] = visited.get(segments[-1], 0) + 1
+    return visited
 
-    return len(visited_coords.keys()), len(bonus_visited.keys())
+def day_9(file_obj):
+    example = open("sol_snake\example_9.txt", encoding="utf-8")
+
+    all_moves: list[Move] = parse_moves(file_obj)
+    main_visited = solve_rope_motion(all_moves)
+    bonus_visited = solve_rope_motion(all_moves, tail_segments=9)
+
+    return len(main_visited.keys()), len(bonus_visited.keys())
