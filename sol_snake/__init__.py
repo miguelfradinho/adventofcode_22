@@ -7,3 +7,13 @@ from .day_6 import day_6
 from .day_7 import day_7
 from .day_8 import day_8
 from .day_9 import day_9
+from .day_10 import day_10
+from .day_11 import day_11
+from .day_12 import day_12
+from .day_13 import day_13
+from .day_14 import day_14
+from .day_15 import day_15
+from .day_16 import day_16
+from .day_17 import day_17
+from .day_18 import day_18
+from .day_19 import day_19
