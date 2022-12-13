@@ -88,5 +88,25 @@ def parse_monkey(lines: list[str]) -> Monkey:
     monke: Monkey = (monke_id, start_items, monke_op, monke_test, monke_conds)
     return monke
 
+
+def parse_input(file_obj) -> list[Monkey]:
+    monkeys: list[Monkey] = []
+    with file_obj as f:
+        monkey_lines: list[str] = []
+        for line in f:
+            line = line.strip()
+            # blank line means new monkey?
+            if line == "":
+                curr_monkey = parse_monkey(monkey_lines)
+                monkeys.append(curr_monkey)
+                monkey_lines = []
+                continue
+            else:
+                monkey_lines.append(line)
+    return monkeys
+
+
 def day_11(file_obj):
-    return None
+    example = open("sol_snake\example_11.txt", encoding="utf-8")
+    monkeys = parse_input(example)
+    return monkeys
