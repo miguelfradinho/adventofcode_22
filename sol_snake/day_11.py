@@ -152,10 +152,10 @@ def day_11(file_obj):
             # do the operation
             old_worry = monkey.items
             new_worry = calculate_worry(old_worry, monkey.operation)
-
+            
             # After each monkey inspects an item BUT BEFORE it tests your worry level
             # your Worry level is divided by 3 and rounded down to the nearest int
-            final_worry = new_worry
+            final_worry = new_worry // 3
             # check division and Throw to monkey
             true_items = final_worry[final_worry % monkey.test.value == 0]
             false_items = final_worry[final_worry % monkey.test.value != 0]
