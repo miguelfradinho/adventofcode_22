@@ -1,7 +1,7 @@
 from enum import Enum
 from dataclasses import dataclass
 from typing import Literal
-
+import math
 
 class OperationType(Enum):
     Multiplication = "*"
@@ -51,6 +51,15 @@ class Operation:
         except ValueError:
             r = PreviousVariable
         return Operation(left=l, operator=OperationType.from_string(op), right=r)
+
+    def calculate(self, old_worry) -> int:
+        left_operand = old_worry if self.left == PreviousVariable else self.left
+        right_operand = old_worry if self.right == PreviousVariable else self.right
+        match self.operator:
+            case OperationType.Addition:
+                return left_operand + right_operand
+            case OperationType.Multiplication:
+                return left_operand * right_operand
 
 
 MonkeyId = int
@@ -121,6 +130,51 @@ def parse_input(file_obj) -> list[Monkey]:
 
 
 def day_11(file_obj):
-    example = open("sol_snake\example_11.txt", encoding="utf-8")
-    monkeys = parse_input(example)
-    return monkeys
+    #example = open("sol_snake\example_11.txt", encoding="utf-8")
+    monkeys = parse_input(file_obj)
+
+    total_rounds = 20
+    total_monkeys = len(monkeys)
+
+    monkey_inspections: dict[MonkeyId, int] = {}
+    monkey_round_items: dict[int, (MonkeyId, MonkeyItems)] = {}
+    # The process of each monkey taking a single turn is called a round.
+    for curr_round in range(total_rounds):
+        # The monkeys take turns inspecting and throwing items
+        for monkey in monkeys:
+            # On a single monkey's turn, it inspects and throws all the items
+            # it is holding one at a time and in the order listed.
+            while True:
+                try:
+                    old_worry = monkey.items.pop(0)
+                except IndexError:
+                    # out of items
+                    break
+                # first, note down the inspection
+                monkey_inspections[monkey.id] = monkey_inspections.get(monkey.id, 0) + 1
+
+                # apply the operation
+                new_worry = monkey.operation.calculate(old_worry)
+
+                # After each monkey inspects an item BUT BEFORE it tests your worry level
+                # your Worry level is divided by 3 and rounded down to the nearest int
+                final_worry = math.floor(new_worry / 3)
+                # check division
+                if final_worry % monkey.test.value == 0:
+                    next_monkey = monkey.test.true_throw
+                else:
+                    next_monkey = monkey.test.false_throw
+
+                # Throw to monkey
+                monkeys[next_monkey].items.append(final_worry)
+        # at the end of each round, add the current items
+        monkey_round_items[curr_round] = [(m.id, m.items) for m in monkeys]
+
+    # after all rounds ended, check the monkey_business
+    first_max_key = max(monkey_inspections, key=monkey_inspections.get)
+    # and pop it
+    first_max = monkey_inspections.pop(first_max_key)
+    # find the second max
+    second_max_key = max(monkey_inspections, key=monkey_inspections.get)
+    second_max = monkey_inspections.pop(second_max_key)
+    return first_max * second_max
