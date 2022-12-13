@@ -54,30 +54,31 @@ class Operation:
 
 
 MonkeyId = int
-TestNum = int
 Item = int
 StartItems = list[Item]
-ThrowCondition = (bool, MonkeyId)
-MonkeyConditions = list[ThrowCondition]
+
+
+@dataclass
+class DivisionTest:
+    value: int
+    true_throw: MonkeyId
+    false_throw: MonkeyId
+
+    def __repr__(self):
+        return f"<val={self.value}, true=Monkey_{self.true_throw}, false=Monkey_{self.true_throw}>"
 
 
 class Monkey:
     def __init__(
-        self,
-        id: MonkeyId,
-        items: StartItems,
-        op: Operation,
-        test: TestNum,
-        conditions: MonkeyConditions,
+        self, id: MonkeyId, items: StartItems, op: Operation, test: DivisionTest
     ):
         self.id = id
         self.items = items
         self.operation = op
         self.test = test
-        self.conditions = conditions
 
     def __repr__(self):
-        return f"Monkey<id={self.id}, items={self.items}, operation={self.operation}, test={self.test}, conds={self.conditions}>"
+        return f"Monkey<id={self.id}, items={self.items}, operation={self.operation}, test={self.test}>"
 
 
 def parse_monkey(lines: list[str]) -> Monkey:
@@ -89,21 +90,15 @@ def parse_monkey(lines: list[str]) -> Monkey:
 
     # third line contains operation
     op_line = lines.pop(0).split("= ")[-1].strip()
-    monke_op: Operation = Operation.parse(op_line)
+    monke_op = Operation.parse(op_line)
 
-    # 4th line is always test
-    monke_test: TestNum = int(lines.pop(0).split(" ")[-1].strip())
+    # 4th line is always the value to divide, followed by the throw conditions
+    test_val = int(lines.pop(0).split(" ")[-1].strip())
+    true_return_to = int(lines.pop(0).split(" ")[-1].strip())
+    false_return_to = int(lines.pop(0).split(" ")[-1].strip())
+    monke_test = DivisionTest(test_val, true_return_to, false_return_to)
 
-    # last lines are always the throw conditions
-    monke_conds: MonkeyConditions = []
-
-    for c in lines:
-        cond_line = c.strip().split(" ")
-        bool_val = True if cond_line[1] == "true:" else False
-        throw_to = int(cond_line[-1])
-        cond: ThrowCondition = (bool_val, throw_to)
-        monke_conds.append(cond)
-    monke = Monkey(monke_id, start_items, monke_op, monke_test, monke_conds)
+    monke = Monkey(monke_id, start_items, monke_op, monke_test)
     return monke
 
 
