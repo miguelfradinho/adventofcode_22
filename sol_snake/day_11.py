@@ -32,7 +32,7 @@ class Operation:
     right: Operand
 
     def __repr__(self):
-        return f"Operation=< {self.left} {self.operator} {self.right}>"
+        return f"<{self.left} {self.operator} {self.right}>"
 
     @staticmethod
     def parse(s: str) -> "Operation":
@@ -59,8 +59,17 @@ Item = int
 StartItems = list[Item]
 ThrowCondition = (bool, MonkeyId)
 MonkeyConditions = list[ThrowCondition]
-Monkey = (MonkeyId, StartItems, Operation, TestNum, MonkeyConditions)
 
+class Monkey:
+    def __init__(self, id: MonkeyId, items: StartItems, op: Operation, test: TestNum, conditions: MonkeyConditions):
+        self.id = id
+        self.items = items
+        self.operation = op
+        self.test = test
+        self.conditions = conditions
+
+    def __repr__(self):
+        return f"Monkey<id={self.id}, items={self.items}, operation={self.operation}, test={self.test}, conds={self.conditions}>"
 
 def parse_monkey(lines: list[str]) -> Monkey:
     # first line is always id
@@ -81,11 +90,11 @@ def parse_monkey(lines: list[str]) -> Monkey:
 
     for c in lines:
         cond_line = c.strip().split(" ")
-        bool_val = True if cond_line[1] == "true" else False
+        bool_val = True if cond_line[1] == "true:" else False
         throw_to = int(cond_line[-1])
         cond: ThrowCondition = (bool_val, throw_to)
         monke_conds.append(cond)
-    monke: Monkey = (monke_id, start_items, monke_op, monke_test, monke_conds)
+    monke = Monkey(monke_id, start_items, monke_op, monke_test, monke_conds)
     return monke
 
 
