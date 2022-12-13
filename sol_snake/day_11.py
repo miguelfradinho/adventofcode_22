@@ -128,12 +128,14 @@ def parse_input(file_obj) -> list[Monkey]:
 
 def day_11(file_obj):
     example = open("sol_snake\example_11.txt", encoding="utf-8")
-    monkeys = parse_input(example)
+    monkeys = parse_input(file_obj)
 
-    total_rounds = 20
+    total_rounds = 10000
 
     monkey_inspections: dict[MonkeyId, int] = {}
     monkey_round_items: dict[int, (MonkeyId, MonkeyItems)] = {}
+    # calculate the multiple between all divisors so we know much to cap for
+    gcd = math.lcm(*[m.test.value for m in monkeys])
     # The process of each monkey taking a single turn is called a round.
     for curr_round in range(total_rounds):
         # The monkeys take turns inspecting and throwing items
@@ -154,7 +156,7 @@ def day_11(file_obj):
 
                 # After each monkey inspects an item BUT BEFORE it tests your worry level
                 # your Worry level is divided by 3 and rounded down to the nearest int
-                final_worry = math.floor(new_worry / 3)
+                final_worry = new_worry % gcd
 
                 # check division
                 divisible = final_worry % monkey.test.value == 0
@@ -176,4 +178,5 @@ def day_11(file_obj):
     # find the second max
     second_max_key = max(monkey_inspections, key=monkey_inspections.get)
     second_max = monkey_inspections.pop(second_max_key)
+
     return first_max * second_max
