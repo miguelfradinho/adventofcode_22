@@ -55,7 +55,7 @@ class Operation:
 
 MonkeyId = int
 Item = int
-StartItems = list[Item]
+MonkeyItems = list[Item]
 
 
 @dataclass
@@ -70,10 +70,11 @@ class DivisionTest:
 
 class Monkey:
     def __init__(
-        self, id: MonkeyId, items: StartItems, op: Operation, test: DivisionTest
+        self, id: MonkeyId, start_items: MonkeyItems, op: Operation, test: DivisionTest
     ):
         self.id = id
-        self.items = items
+        self.items = start_items
+        """ Worry level for each item the monkey is currently holding, in the ORDER they will be inspected"""
         self.operation = op
         self.test = test
 
@@ -86,7 +87,7 @@ def parse_monkey(lines: list[str]) -> Monkey:
     monke_id = int(lines.pop(0).strip("Monkey").strip(":").strip())
     # 2nd line always contains the items
     start_line = lines.pop(0).split(":")[-1].strip()
-    start_items: StartItems = [int(i.strip()) for i in start_line.split(",")]
+    start_items: MonkeyItems = [int(i.strip()) for i in start_line.split(",")]
 
     # third line contains operation
     op_line = lines.pop(0).split("= ")[-1].strip()
@@ -106,7 +107,7 @@ def parse_input(file_obj) -> list[Monkey]:
     monkeys: list[Monkey] = []
     with file_obj as f:
         monkey_lines: list[str] = []
-        for line in f:
+        for line in f.read().split("\n"):
             line = line.strip()
             # blank line means new monkey?
             if line == "":
