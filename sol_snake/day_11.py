@@ -1,5 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
+from typing import Literal
 
 
 class OperationType(Enum):
@@ -20,13 +21,36 @@ class OperationType(Enum):
         return self.value
 
 
+PreviousVariable = Literal["old"]
+Operand = int | PreviousVariable
+
+
 @dataclass
 class Operation:
-    op_type: OperationType
-    value: int
+    operator: OperationType
+    left: Operand
+    right: Operand
 
     def __repr__(self):
-        return f"Operation=< {self.op_type} {self.value}>"
+        return f"Operation=< {self.left} {self.operator} {self.right}>"
+
+    @staticmethod
+    def parse(s: str) -> "Operation":
+        # operations are always in the form of "<operand> <operation> <operand>"
+        l: Operand
+        t: Operand
+        l, op, r = s.split(" ")
+        # try casting for...idk?
+        try:
+            l = int(l)
+        except ValueError:
+            l = PreviousVariable
+
+        try:
+            r = int(r)
+        except ValueError:
+            r = PreviousVariable
+        return Operation(left=l, operator=OperationType.from_string(op), right=r)
 
 
 MonkeyId = int
@@ -39,7 +63,6 @@ Monkey = (MonkeyId, StartItems, Operation, TestNum, MonkeyConditions)
 
 
 def parse_monkey(lines: list[str]) -> Monkey:
-
     # first line is always id
     monke_id = int(lines.pop(0).strip("Monkey").strip(":").strip())
     # 2nd line always contains the items
@@ -47,9 +70,8 @@ def parse_monkey(lines: list[str]) -> Monkey:
     start_items: StartItems = [int(i.strip()) for i in start_line.split(",")]
 
     # third line contains operation
-    op_line = lines.pop(0).split("old ")[-1].strip()
-    op_type, op_val = op_line.split(" ")
-    monke_op: Operation = Operation(OperationType.from_string(op_type), int(op_val))
+    op_line = lines.pop(0).split("= ")[-1].strip()
+    monke_op: Operation = Operation.parse(op_line)
 
     # 4th line is always test
     monke_test: TestNum = int(lines.pop(0).split(" ")[-1].strip())
