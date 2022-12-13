@@ -60,8 +60,16 @@ StartItems = list[Item]
 ThrowCondition = (bool, MonkeyId)
 MonkeyConditions = list[ThrowCondition]
 
+
 class Monkey:
-    def __init__(self, id: MonkeyId, items: StartItems, op: Operation, test: TestNum, conditions: MonkeyConditions):
+    def __init__(
+        self,
+        id: MonkeyId,
+        items: StartItems,
+        op: Operation,
+        test: TestNum,
+        conditions: MonkeyConditions,
+    ):
         self.id = id
         self.items = items
         self.operation = op
@@ -70,6 +78,7 @@ class Monkey:
 
     def __repr__(self):
         return f"Monkey<id={self.id}, items={self.items}, operation={self.operation}, test={self.test}, conds={self.conditions}>"
+
 
 def parse_monkey(lines: list[str]) -> Monkey:
     # first line is always id
