@@ -1,8 +1,7 @@
 from enum import Enum
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Optional
 import math
-import numpy as np
 
 
 class OperationType(Enum):
@@ -61,7 +60,7 @@ class DivisionTest:
 
 class Monkey:
     def __init__(
-        self, id: MonkeyId, start_items: np.ndarray, op: Operation, test: DivisionTest
+        self, id: MonkeyId, start_items: MonkeyItems, op: Operation, test: DivisionTest
     ):
         self.id = id
         self.items = start_items
@@ -78,9 +77,8 @@ def parse_monkey(lines: list[str]) -> Monkey:
     monke_id = int(lines.pop(0).strip("Monkey").strip(":").strip())
     # 2nd line always contains the items
     start_line = lines.pop(0).split(":")[-1].strip()
-    start_items: MonkeyItems = np.asarray(
-        [int(i.strip()) for i in start_line.split(",")]
-    )
+    start_items: MonkeyItems = [int(i.strip()) for i in start_line.split(",")]
+
 
     # third line contains operation
     op_line = lines.pop(0).split("= ")[-1].strip()
@@ -96,18 +94,17 @@ def parse_monkey(lines: list[str]) -> Monkey:
     return monke
 
 
-def calculate_worry(old_values: np.ndarray, op: Operation) -> np.ndarray:
-    new_worry: np.ndarray
+def calculate_worry(old_value: int, op: Operation) -> int:
     # easy case
     if op.operator is OperationType.Addition:
-        return old_values + op.constant
+        return old_value + op.constant
     # hard case
     elif op.operator is OperationType.Multiplication:
         # old variable
         if not op.square:
-            return old_values * op.constant
+            return old_value * op.constant
         else:
-            return old_values * old_values
+            return old_value * old_value
     else:
         raise ValueError("wrong operator")
 
@@ -136,43 +133,37 @@ def day_11(file_obj):
     total_rounds = 20
 
     monkey_inspections: dict[MonkeyId, int] = {}
-    monkey_round_items: dict[int, (MonkeyId, np.ndarray)] = {}
+    monkey_round_items: dict[int, (MonkeyId, MonkeyItems)] = {}
     # The process of each monkey taking a single turn is called a round.
     for curr_round in range(total_rounds):
         # The monkeys take turns inspecting and throwing items
         for monkey in monkeys:
             # On a single monkey's turn, it inspects and throws all the items
             # it is holding one at a time and in the order listed.
+            while True:
+                try:
+                    old_worry = monkey.items.pop(0)
+                except IndexError:
+                    # out of items
+                    break
+                # first, note down the inspection (which is equal to the number of elements in the items)
+                monkey_inspections[monkey.id] = monkey_inspections.get(monkey.id, 0) + 1
 
-            # Note: that's the rule... however, we can just multiply the matrixes
-            # first, note down the inspection (which is equal to the number of elements in the items)
-            monkey_inspections[monkey.id] = monkey_inspections.get(monkey.id, 0) + len(
-                monkey.items
-            )
-            # do the operation
-            old_worry = monkey.items
-            new_worry = calculate_worry(old_worry, monkey.operation)
-            
-            # After each monkey inspects an item BUT BEFORE it tests your worry level
-            # your Worry level is divided by 3 and rounded down to the nearest int
-            final_worry = new_worry // 3
-            # check division and Throw to monkey
-            true_items = final_worry[final_worry % monkey.test.value == 0]
-            false_items = final_worry[final_worry % monkey.test.value != 0]
-            # and append to the respective
-            true_monkey = monkey.test.true_throw
-            false_monkey = monkey.test.false_throw
+                # apply the operation
+                new_worry = calculate_worry(old_worry, monkey.operation)
 
-            monkeys[true_monkey].items = np.append(
-                monkeys[true_monkey].items, true_items
-            )
-            monkeys[false_monkey].items = np.append(
-                monkeys[false_monkey].items, false_items
-            )
+                # After each monkey inspects an item BUT BEFORE it tests your worry level
+                # your Worry level is divided by 3 and rounded down to the nearest int
+                final_worry = math.floor(new_worry / 3)
 
-            # clear the items for this monkey
-            monkey.items = np.array([])
-
+                # check division
+                divisible = final_worry % monkey.test.value == 0
+                if divisible:
+                    next_monkey = monkey.test.true_throw
+                else:
+                    next_monkey = monkey.test.false_throw
+                # Throw to monkey
+                monkeys[next_monkey].items.append(final_worry)
         # at the end of each round, add the current items
         monkey_round_items[curr_round] = [(m.id, m.items) for m in monkeys]
 
