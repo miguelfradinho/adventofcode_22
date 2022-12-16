@@ -100,5 +100,5 @@ def day_13(file_obj):
         if pair_is_correct:
             correct_pairs.append(i+1)
 
-    print(correct_pairs)
+    #print(correct_pairs)
     return sum(correct_pairs)
