@@ -1,42 +1,12 @@
-from enum import Enum
 from dataclasses import dataclass
 from typing import Optional
-
-
-class Direction(Enum):
-    Up = 1
-    DiagonalRightUp = 5
-    Right = 2
-    DiagonalRightDown = 6
-    Down = 3
-    DiagonalLeftDown = 7
-    Left = 4
-    DiagonalLeftUp = 8
-
-    @staticmethod
-    def from_string(string):
-        match string:
-            case "R":
-                return Direction.Right
-            case "L":
-                return Direction.Left
-            case "D":
-                return Direction.Down
-            case "U":
-                return Direction.Up
-            case _:
-                raise NotImplementedError(
-                    "expected one of the 4 cardinal directions, got: ", string
-                )
+from .data_types import Coordinate, Direction
 
 
 @dataclass
 class Move:
     direction: Direction
     distance: int
-
-
-Coordinate = tuple[int, int]
 
 
 def parse_moves(file_obj) -> list[Move]:
