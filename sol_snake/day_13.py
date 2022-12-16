@@ -1,4 +1,4 @@
-from typing import Union, IO, TypeVar
+from typing import Union, IO, TypeVar, Optional
 
 TData = TypeVar("TData", int, list)
 PacketData = list[TData]
@@ -41,7 +41,7 @@ def parse_input(file_obj : IO):
                 pair.append(packet)
     return total_pairs
 
-def compare_values(left: PacketData, right : PacketData):
+def compare_values(left: PacketData, right : PacketData) -> Optional[bool]:
 
     # if they both have the same type
     if type(left) == type(right):
@@ -50,27 +50,31 @@ def compare_values(left: PacketData, right : PacketData):
             # If the left integer is higher than the right integer, the inputs are not in the right order.
             if left > right:
                 return False
+            # if they're equal, we need a way of skipping, so, we'll return None
+            elif left == right:
+                return None
             # Otherwise, the inputs are the same integer; continue checking the next part of the input.
             return True
         # both are lists
         elif type(left) == list:
-            # If the left list runs out of items first, the inputs are in the right order.
+            # compare each value
+            for i in range(len(left)):
+                curr_left = left[i]
+                # if right side happens to have less items, then we should return false
+                try:
+                    curr_right = right[i]
+                except IndexError:
+                    return False
+                curr_res = compare_values(curr_left, curr_right)
+                # check if it's None, if yes, then just keep doing it, cuz we won't reach a conclusion
+                if curr_res is None:
+                    continue
+                return curr_res
+            # if we reached here, and right side still has more items, then we are correct
             if len(left) < len(right):
                 return True
-            # If the right list runs out of items first, the inputs are not in the right order.
-            elif len(left) > len(right):
-                return False
-            # Keep comparing the rest, so
-            else:
-                comparisons = []
-
-                for i in range(len(left)):
-                    curr_left = left[i]
-                    curr_right = right[i]
-                    curr_res = compare_values(curr_left, curr_right)
-                    comparisons.append(curr_res)
-                return all(comparisons)
-
+            # if we reached here, we didn't reach a conclusion, so return None
+            return None
     # If exactly one value is an integer, convert the integer to a list which contains that integer as its only value
     if type(left) == int:
         return compare_values([left], right)
@@ -81,8 +85,8 @@ def compare_values(left: PacketData, right : PacketData):
 
 
 def day_13(file_obj):
-    example = open("sol_snake\example_13.txt", encoding="utf-8")
-    packet_pairs = parse_input(example)
+    #example = open("sol_snake\example_13.txt", encoding="utf-8")
+    packet_pairs = parse_input(file_obj)
 
     correct_pairs = []
 
@@ -94,7 +98,7 @@ def day_13(file_obj):
 
         pair_is_correct = compare_values(left, right)
         if pair_is_correct:
-            correct_pairs.append(i)
+            correct_pairs.append(i+1)
 
     print(correct_pairs)
     return sum(correct_pairs)
