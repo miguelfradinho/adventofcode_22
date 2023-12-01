@@ -24,7 +24,7 @@ def get_score_for_lines(elem, blocking_trees, reverse=False):
 
 
 def day_8(file_obj):
-    example = open("sol_snake\example_8.txt")
+    example = open("sol_snake\\example_8.txt")
 
     all_trees = []
     with file_obj as f:
